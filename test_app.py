@@ -1,6 +1,7 @@
 import pytest
 import json
 from app import app, extract_data_from_payload
+from prometheus_client.parser import text_string_to_metric_families
 
 @pytest.fixture()
 def client():
@@ -26,3 +27,22 @@ def test_extract_data_from_payload():
     assert extracted_data["workflow_id"] == 1
     assert extracted_data["workflow_run_id"] == 30041
     assert extracted_data["conclusion"] == "success"
+
+def test_metric_recorded(client):
+    with open('sample_payload.json', 'r') as f:
+        test_payload = json.load(f)
+    response = client.post('/webhook',
+                           json=test_payload,
+                           content_type='application/json')
+
+    assert response.status_code == 200
+
+    response = client.get('/metrics')
+
+    metric_families = text_string_to_metric_families(response.get_data(as_text=True))
+    metric_names = []
+    for metric in metric_families:
+        metric_names.append(metric.name)
+
+    # Note prometheus_client strips the 'total' suffix from the metric name
+    assert "githubactions_workflow_run" in metric_names

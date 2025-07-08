@@ -1,14 +1,12 @@
 import os
 import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
+from prometheus_client import Counter, generate_latest
 
 app = Flask(__name__)
-
-DATA_FILE = 'webhook_data.json'
-
-if not os.path.exists(DATA_FILE):
-    with open(DATA_FILE, 'w') as f:
-        json.dump([], f)
+workflow_runs = Counter('githubactions_workflow_run_total',
+                        'Number of workflow executions',
+                        ['workflow_id'])
 
 @app.route('/webhook', methods=['POST'])
 def receive_webhook():
@@ -18,18 +16,15 @@ def receive_webhook():
     payload = request.get_json()
     extracted_data = extract_data_from_payload(payload)
 
-    try:
-        with open(DATA_FILE, 'r+') as f:
-            existing_data = json.load(f)
-            existing_data.append(extracted_data)
-            f.seek(0)
-            json.dump(existing_data, f, indent=4)
-            f.truncate()
-        print(f"Stored data: {extracted_data}")
-        return jsonify({"status": "success"}), 200
-    except Exception as e:
-        printf("Error storing data: {e}")
-        return jsonify({"status": "error", "message": "Failed to store data"}), 500
+    workflow_id = extracted_data['workflow_id']
+
+    workflow_runs.labels(workflow_id).inc()
+
+    return jsonify({"status": "success"}), 200
+
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    return Response(generate_latest(), mimetype='text/plain; version=0.0.4; charset=utf-8')
 
 def extract_data_from_payload(payload):
     workflow = payload.get("workflow")
