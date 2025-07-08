@@ -16,15 +16,7 @@ def receive_webhook():
     Receive the workflow_run webhook event
     """
     payload = request.get_json()
-
-    workflow = payload.get("workflow")
-    workflow_run = payload.get("workflow_run")
-
-    extracted_data = {
-        "workflow_id": workflow.get("id"),
-        "workflow_run_id": workflow_run.get("id"),
-        "conclusion": workflow_run.get("conclusion")
-    }
+    extracted_data = extract_data_from_payload(payload)
 
     try:
         with open(DATA_FILE, 'r+') as f:
@@ -38,6 +30,18 @@ def receive_webhook():
     except Exception as e:
         printf("Error storing data: {e}")
         return jsonify({"status": "error", "message": "Failed to store data"}), 500
+
+def extract_data_from_payload(payload):
+    workflow = payload.get("workflow")
+    workflow_run = payload.get("workflow_run")
+
+    rv = {
+        "workflow_id": workflow.get("id"),
+        "workflow_run_id": workflow_run.get("id"),
+        "conclusion": workflow_run.get("conclusion")
+    }
+
+    return rv
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
