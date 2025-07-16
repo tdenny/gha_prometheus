@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gha_prometheus"
+version = "0.0.1"
+authors = [
+  { name="Travis Denny", email="inbox@travisdenny.com" },
+]
+description = "App that listens to GitHub webhook events in order to make "
+              "metrics available to Prometheus"
+readme = "README.rst"
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICENSE"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
