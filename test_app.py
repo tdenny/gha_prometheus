@@ -28,7 +28,7 @@ def test_extract_data_from_payload():
     assert extracted_data["workflow_run_id"] == 30041
     assert extracted_data["conclusion"] == "success"
 
-def test_metric_recorded(client):
+def test_metrics_recorded(client):
     with open('sample_payload.json', 'r') as f:
         test_payload = json.load(f)
     response = client.post('/webhook',
