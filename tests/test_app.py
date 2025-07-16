@@ -46,3 +46,13 @@ def test_metrics_recorded(client):
 
     # Note prometheus_client strips the 'total' suffix from the metric name
     assert "githubactions_workflow_run" in metric_names
+
+def test_invalid_payload(client):
+    with open('tests/invalid_payload.json', 'r') as f:
+        invalid_payload = json.load(f)
+    response = client.post('/webhook',
+                           json=invalid_payload,
+                           content_type='application/json')
+
+    assert response.status_code == 400
+    assert response.json["message"] == "Invalid request payload"
