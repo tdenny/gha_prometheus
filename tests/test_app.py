@@ -1,6 +1,6 @@
 import pytest
 import json
-from app import app, extract_data_from_payload
+from gha_prometheus.app import app, extract_data_from_payload
 from prometheus_client.parser import text_string_to_metric_families
 
 @pytest.fixture()
@@ -20,7 +20,7 @@ def test_payload_not_json(client):
     assert b"Unsupported Media Type" in response_data
 
 def test_extract_data_from_payload():
-    with open('sample_payload.json', 'r') as f:
+    with open('tests/sample_payload.json', 'r') as f:
         test_payload = json.load(f)
     extracted_data = extract_data_from_payload(test_payload)
 
@@ -29,7 +29,7 @@ def test_extract_data_from_payload():
     assert extracted_data["conclusion"] == "success"
 
 def test_metrics_recorded(client):
-    with open('sample_payload.json', 'r') as f:
+    with open('tests/sample_payload.json', 'r') as f:
         test_payload = json.load(f)
     response = client.post('/webhook',
                            json=test_payload,
