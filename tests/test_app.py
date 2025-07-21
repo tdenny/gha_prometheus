@@ -1,6 +1,6 @@
 import pytest
 import json
-from gha_prometheus.app import app, extract_data_from_payload
+from gha_prometheus.app import app, extract_data_from_payload, validate_payload
 from prometheus_client.parser import text_string_to_metric_families
 
 @pytest.fixture()
@@ -27,6 +27,12 @@ def test_extract_data_from_payload():
     assert extracted_data["workflow_id"] == 1
     assert extracted_data["workflow_run_id"] == 30041
     assert extracted_data["conclusion"] == "success"
+
+def test_validate_payload_success():
+    with open('tests/sample_payload.json', 'r') as f:
+        test_payload = json.load(f)
+
+    assert validate_payload(test_payload) is None
 
 def test_metrics_recorded(client):
     with open('tests/sample_payload.json', 'r') as f:
