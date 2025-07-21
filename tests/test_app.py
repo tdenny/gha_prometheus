@@ -30,6 +30,8 @@ def test_extract_data_from_payload():
     assert extracted_data["workflow_id"] == 1
     assert extracted_data["workflow_run_id"] == 30041
     assert extracted_data["conclusion"] == "success"
+    assert extracted_data["run_started_at"] == "00:00:00 Jan 01 1970"
+    assert extracted_data["updated_at"] == "01:00:00 Jan 01 1970"
 
 def test_validate_payload_success():
     with open('tests/sample_payload.json', 'r') as f:

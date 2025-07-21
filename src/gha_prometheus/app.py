@@ -75,7 +75,9 @@ def extract_data_from_payload(payload):
     rv = {
         "workflow_id": workflow.get("id"),
         "workflow_run_id": workflow_run.get("id"),
-        "conclusion": workflow_run.get("conclusion")
+        "conclusion": workflow_run.get("conclusion"),
+        "run_started_at": workflow_run.get("run_started_at"),
+        "updated_at": workflow_run.get("updated_at")
     }
 
     return rv
