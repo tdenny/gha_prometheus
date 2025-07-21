@@ -56,3 +56,5 @@ def test_invalid_payload(client):
 
     assert response.status_code == 400
     assert response.json["message"] == "Invalid request payload"
+    assert response.json["errors"] == [{"field": "workflow_run",
+                                        "message": "Field 'workflow_run' is required."}]

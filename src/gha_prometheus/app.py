@@ -2,11 +2,38 @@ import os
 import json
 from flask import abort, Flask, request, jsonify, Response
 from prometheus_client import Counter, generate_latest
+from werkzeug.exceptions import BadRequest
+from werkzeug.wrappers.response import Response
 
 app = Flask(__name__)
 workflow_runs = Counter('githubactions_workflow_run_total',
                         'Number of workflow executions',
                         ['workflow_id'])
+
+class BadRequestMissingField(BadRequest):
+    """
+    Bad Request with contextual information on missing fields
+    """
+
+    def __init__(self, missing_fields=[]):
+        rendered_missing_fields = []
+        for missing_field in missing_fields:
+            rendered_missing_fields.append({
+                "field": missing_field,
+                "message": f"Field '{missing_field}' is required."
+                })
+
+        json_response = json.dumps(
+                {
+                    "status_code": self.code,
+                    "message": "Invalid request payload",
+                    "errors": rendered_missing_fields
+                }
+            )
+        response = Response(json_response,
+                            self.code,
+                            content_type="application/json")
+        super().__init__(response=response)
 
 @app.route('/webhook', methods=['POST'])
 def receive_webhook():
@@ -27,17 +54,19 @@ def receive_webhook():
 def metrics():
     return Response(generate_latest(), mimetype='text/plain; version=0.0.4; charset=utf-8')
 
-@app.errorhandler(400)
-def invalid_request(e):
-    return jsonify(message=e.description), 400
-
 def validate_payload(payload):
     """
     Validate that the webhook payload contains all required fields
     """
     fields = payload.keys()
-    if "workflow" not in fields or "workflow_run" not in fields:
-        abort(400, description="Invalid request payload")
+    missing_fields = []
+    if "workflow" not in fields:
+        missing_fields.append("workflow")
+    if "workflow_run" not in fields:
+        missing_fields.append("workflow_run")
+
+    if missing_fields:
+        raise BadRequestMissingField(missing_fields)
 
 def extract_data_from_payload(payload):
     workflow = payload.get("workflow")
