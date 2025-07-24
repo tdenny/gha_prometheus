@@ -71,6 +71,7 @@ def test_metrics_recorded(client):
 
     # Note prometheus_client strips the 'total' suffix from the metric name
     assert "githubactions_workflow_run" in metric_names
+    assert "githubactions_workflow_run_duration_seconds" in metric_names
 
 def test_invalid_payload(client):
     with open('tests/invalid_payload.json', 'r') as f:
