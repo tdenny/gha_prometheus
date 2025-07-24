@@ -1,7 +1,8 @@
 import os
 import json
+from datetime import datetime
 from flask import abort, Flask, request, jsonify, Response
-from prometheus_client import Counter, generate_latest
+from prometheus_client import Counter, Gauge, generate_latest
 from werkzeug.exceptions import BadRequest
 from werkzeug.wrappers.response import Response
 
@@ -9,6 +10,9 @@ app = Flask(__name__)
 workflow_runs = Counter('githubactions_workflow_run_total',
                         'Number of workflow executions',
                         ['workflow_id'])
+workflow_duration = Gauge('githubactions_workflow_run_duration_seconds',
+                          'Duration of a workflow run in seconds',
+                          ['workflow_id'])
 
 class BadRequestMissingField(BadRequest):
     """
@@ -44,9 +48,11 @@ def receive_webhook():
     validate_payload(payload)
     extracted_data = extract_data_from_payload(payload)
 
-    workflow_id = extracted_data['workflow_id']
-
-    workflow_runs.labels(workflow_id).inc()
+    if payload['action'] == 'completed':
+        workflow_id = payload['workflow']['id']
+        duration = calculate_workflow_duration(payload)
+        workflow_runs.labels(workflow_id).inc()
+        workflow_duration.labels(workflow_id).set(duration)
 
     return jsonify({"status": "success"}), 200
 
@@ -67,6 +73,12 @@ def validate_payload(payload):
 
     if missing_fields:
         raise BadRequestMissingField(missing_fields)
+
+def calculate_workflow_duration(payload):
+    time_format = '%Y-%m-%dT%H:%M:%SZ'
+    start_time = datetime.strptime(payload['workflow_run']['run_started_at'], time_format)
+    end_time = datetime.strptime(payload['workflow_run']['updated_at'], time_format)
+    return (end_time - start_time).seconds
 
 def extract_data_from_payload(payload):
     workflow = payload.get("workflow")
