@@ -1,0 +1,20 @@
+services:
+  gha_prometheus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - test-network
+    ports:
+      - "8080:80"
+  prometheus:
+    image: prom/prometheus
+    networks:
+      - test-network
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./tests/prometheus.yml:/etc/prometheus/prometheus.yml
+
+networks:
+  test-network:

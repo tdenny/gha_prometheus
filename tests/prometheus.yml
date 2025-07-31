@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: gha_prometheus
+    static_configs:
+      - targets: ['gha_prometheus:80']
+    metrics_path: '/metrics'
