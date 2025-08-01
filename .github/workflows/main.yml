@@ -34,15 +34,15 @@ jobs:
         with:
           python-version: '3.12.9'
 
+      - uses: hoverkraft-tech/compose-action@v2.3.0
+        with:
+          compose-file: docker-compose.yml
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
           pip install .
-
-      - uses: hoverkraft-tech/compose-action@v2.3.0
-        with:
-          compose-file: docker-compose.yml
 
       - name: Execute integration tests
         run: pytest tests/test_integration.py
