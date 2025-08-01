@@ -10,6 +10,12 @@ app = Flask(__name__)
 workflow_runs = Counter('githubactions_workflow_run_total',
                         'Number of workflow executions',
                         ['workflow_id'])
+workflow_failures = Counter('githubactions_workflow_run_failure_total',
+                            'Number of failed workflow runs',
+                            ['workflow_id'])
+workflow_successes = Counter('githubactions_workflow_run_success_total',
+                             'Number of successful workflow runs',
+                             ['workflow_id'])
 workflow_duration = Gauge('githubactions_workflow_run_duration_seconds',
                           'Duration of a workflow run in seconds',
                           ['workflow_id'])
@@ -52,6 +58,10 @@ def receive_webhook():
         workflow_id = payload['workflow']['id']
         duration = calculate_workflow_duration(payload)
         workflow_runs.labels(workflow_id).inc()
+        if payload['workflow_run']['conclusion'] == 'success':
+            workflow_successes.labels(workflow_id).inc()
+        elif payload['workflow_run']['conclusion'] == 'failure':
+            workflow_failures.labels(workflow_id).inc()
         workflow_duration.labels(workflow_id).set(duration)
 
     return jsonify({"status": "success"}), 200
