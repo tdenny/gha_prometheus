@@ -14,10 +14,27 @@ def client():
         })
     return app.test_client()
 
+def test_no_event_header(client):
+    with open('tests/sample_payload.json', 'r') as f:
+        test_payload = json.load(f)
+    response = client.post('/webhook',
+                           json=test_payload,
+                           content_type='application/json')
+
+    assert response.status_code == 400
+    assert response.json['message'] == 'Missing X-GitHub-Event header'
+
+def test_no_payload(client):
+    response = client.post('/webhook',
+                           content_type='application/json',
+                           headers={'X-GitHub-Event': 'workflow_run'})
+    assert response.status_code == 400
+
 def test_payload_not_json(client):
     response = client.post('/webhook',
                            data="Non-json payload",
-                           content_type='text/plain')
+                           content_type='text/plain',
+                           headers={'X-GitHub-Event': 'workflow_run'})
     response_data = response.get_data()
 
     assert response.status_code == 415
@@ -58,7 +75,8 @@ def test_metrics_recorded(client):
         test_payload = json.load(f)
     response = client.post('/webhook',
                            json=test_payload,
-                           content_type='application/json')
+                           content_type='application/json',
+                           headers={'X-GitHub-Event': 'workflow_run'})
 
     assert response.status_code == 200
 
@@ -78,7 +96,8 @@ def test_invalid_payload(client):
         invalid_payload = json.load(f)
     response = client.post('/webhook',
                            json=invalid_payload,
-                           content_type='application/json')
+                           content_type='application/json',
+                           headers={'X-GitHub-Event': 'workflow_run'})
 
     assert response.status_code == 400
     assert response.json["message"] == "Invalid request payload"

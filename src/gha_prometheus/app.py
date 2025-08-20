@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 from flask import abort, Flask, request, jsonify, Response
 from prometheus_client import Counter, Gauge, generate_latest
-from werkzeug.exceptions import BadRequest
+from werkzeug.exceptions import BadRequest, HTTPException
 from werkzeug.wrappers.response import Response
 
 app = Flask(__name__)
@@ -50,21 +50,27 @@ def receive_webhook():
     """
     Receive the workflow_run webhook event
     """
-    payload = request.get_json()
-    validate_payload(payload)
-    extracted_data = extract_data_from_payload(payload)
+    event = request.headers.get('X-GitHub-Event')
+    if not event:
+        return jsonify({"status": "error",
+                        "message": "Missing X-GitHub-Event header"}), 400
 
-    if payload['action'] == 'completed':
-        workflow_id = payload['workflow']['id']
-        duration = calculate_workflow_duration(payload)
-        workflow_runs.labels(workflow_id).inc()
-        if payload['workflow_run']['conclusion'] == 'success':
-            workflow_successes.labels(workflow_id).inc()
-        elif payload['workflow_run']['conclusion'] == 'failure':
-            workflow_failures.labels(workflow_id).inc()
-        workflow_duration.labels(workflow_id).set(duration)
+    if event == "workflow_run":
+        payload = request.get_json()
+        validate_payload(payload)
+        extracted_data = extract_data_from_payload(payload)
 
-    return jsonify({"status": "success"}), 200
+        if payload['action'] == 'completed':
+            workflow_id = payload['workflow']['id']
+            duration = calculate_workflow_duration(payload)
+            workflow_runs.labels(workflow_id).inc()
+            if payload['workflow_run']['conclusion'] == 'success':
+                workflow_successes.labels(workflow_id).inc()
+            elif payload['workflow_run']['conclusion'] == 'failure':
+                workflow_failures.labels(workflow_id).inc()
+            workflow_duration.labels(workflow_id).set(duration)
+
+        return jsonify({"status": "success"}), 200
 
 @app.route('/metrics', methods=['GET'])
 def metrics():
