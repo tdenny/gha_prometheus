@@ -3,7 +3,7 @@ import json
 from gha_prometheus.app import app
 from gha_prometheus.app import extract_data_from_payload
 from gha_prometheus.app import calculate_workflow_duration
-from gha_prometheus.app import validate_payload
+from gha_prometheus.app import validate_workflow_run_payload
 from gha_prometheus.app import BadRequestMissingField
 from prometheus_client.parser import text_string_to_metric_families
 
@@ -51,18 +51,18 @@ def test_extract_data_from_payload():
     assert extracted_data["run_started_at"] == "2025-07-21T14:58:00Z"
     assert extracted_data["updated_at"] == "2025-07-21T14:58:19Z"
 
-def test_validate_payload_success():
+def test_validate_workflow_run_payload_success():
     with open('tests/sample_payload.json', 'r') as f:
         test_payload = json.load(f)
 
-    assert validate_payload(test_payload) is None
+    assert validate_workflow_run_payload(test_payload) is None
 
-def test_validate_payload_failure():
+def test_validate_workflow_run_payload_failure():
     with open('tests/invalid_payload.json', 'r') as f:
         test_payload = json.load(f)
 
     with pytest.raises(BadRequestMissingField):
-        validate_payload(test_payload)
+        validate_workflow_run_payload(test_payload)
 
 def test_calculate_duration():
     with open('tests/sample_payload.json', 'r') as f:

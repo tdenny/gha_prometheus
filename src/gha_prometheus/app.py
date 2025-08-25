@@ -57,7 +57,7 @@ def receive_webhook():
 
     payload = request.get_json()
     if event == "workflow_run":
-        validate_payload(payload)
+        validate_workflow_run_payload(payload)
         extracted_data = extract_data_from_payload(payload)
 
         if payload['action'] == 'completed':
@@ -76,7 +76,7 @@ def receive_webhook():
 def metrics():
     return Response(generate_latest(), mimetype='text/plain; version=0.0.4; charset=utf-8')
 
-def validate_payload(payload):
+def validate_workflow_run_payload(payload):
     """
     Validate that the webhook payload contains all required fields
     """
