@@ -4,6 +4,7 @@ from gha_prometheus.app import app
 from gha_prometheus.app import extract_data_from_payload
 from gha_prometheus.app import calculate_workflow_duration
 from gha_prometheus.app import validate_workflow_run_payload
+from gha_prometheus.app import validate_workflow_job_payload
 from gha_prometheus.app import BadRequestMissingField
 from prometheus_client.parser import text_string_to_metric_families
 
@@ -63,6 +64,19 @@ def test_validate_workflow_run_payload_failure():
 
     with pytest.raises(BadRequestMissingField):
         validate_workflow_run_payload(test_payload)
+
+def test_validate_workflow_job_payload_success():
+    with open('tests/valid_workflow_job_payload.json', 'r') as f:
+        test_payload = json.load(f)
+
+    assert validate_workflow_job_payload(test_payload) is None
+
+def test_validate_workflow_job_payload_failure():
+    with open('tests/invalid_workflow_job_payload.json', 'r') as f:
+        test_payload = json.load(f)
+
+    with pytest.raises(BadRequestMissingField):
+        validate_workflow_job_payload(test_payload)
 
 def test_calculate_duration():
     with open('tests/sample_payload.json', 'r') as f:

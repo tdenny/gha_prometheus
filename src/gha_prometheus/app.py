@@ -90,6 +90,18 @@ def validate_workflow_run_payload(payload):
     if missing_fields:
         raise BadRequestMissingField(missing_fields)
 
+def validate_workflow_job_payload(payload):
+    """
+    Validate that the workflow_job payload contains required fields
+    """
+    fields = payload.keys()
+    missing_fields = []
+    if "workflow_job" not in fields:
+        missing_fields.append("workflow_job")
+
+    if missing_fields:
+        raise BadRequestMissingField(missing_fields)
+
 def calculate_workflow_duration(payload):
     time_format = '%Y-%m-%dT%H:%M:%SZ'
     start_time = datetime.strptime(payload['workflow_run']['run_started_at'], time_format)
