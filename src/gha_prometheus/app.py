@@ -55,8 +55,8 @@ def receive_webhook():
         return jsonify({"status": "error",
                         "message": "Missing X-GitHub-Event header"}), 400
 
+    payload = request.get_json()
     if event == "workflow_run":
-        payload = request.get_json()
         validate_payload(payload)
         extracted_data = extract_data_from_payload(payload)
 
