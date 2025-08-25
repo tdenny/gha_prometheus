@@ -7,12 +7,14 @@ def test_prometheus_scrapes_metrics():
     with open('tests/sample_payload.json', 'r') as f:
         test_payload = json.load(f)
     app_response = requests.post('http://localhost:8080/webhook',
+                                 headers={'X-GitHub-Event': 'workflow_run'},
                                  json=test_payload)
     app_response.raise_for_status()
 
     with open('tests/sample_failed_payload.json', 'r') as f:
         test_payload = json.load(f)
     app_response = requests.post('http://localhost:8080/webhook',
+                                 headers={'X-GitHub-Event': 'workflow_run'},
                                  json=test_payload)
     app_response.raise_for_status()
 
