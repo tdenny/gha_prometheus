@@ -19,6 +19,9 @@ workflow_successes = Counter('githubactions_workflow_run_success_total',
 workflow_duration = Gauge('githubactions_workflow_run_duration_seconds',
                           'Duration of a workflow run in seconds',
                           ['workflow_id'])
+job_runs = Counter('githubactions_workflow_job_total',
+                   'Number of workflow job executions',
+                   ['workflow_run_id', 'workflow_job_id'])
 
 class BadRequestMissingField(BadRequest):
     """
@@ -75,6 +78,10 @@ def receive_webhook():
         if payload['action'] == 'completed':
             workflow_job_id = payload['workflow_job']['id']
             workflow_run_id = payload['workflow_job']['run_id']
+            job_runs.labels(
+                    workflow_run_id=workflow_run_id,
+                    workflow_job_id=workflow_job_id
+                    ).inc()
 
     return jsonify({"status": "success"}), 200
 

@@ -84,7 +84,7 @@ def test_calculate_duration():
 
     assert calculate_workflow_duration(test_payload) == 19
 
-def test_metrics_recorded(client):
+def test_workflow_run_metrics_recorded(client):
     with open('tests/valid_workflow_run_payload.json', 'r') as f:
         test_payload = json.load(f)
     response = client.post('/webhook',
@@ -104,6 +104,26 @@ def test_metrics_recorded(client):
     # Note prometheus_client strips the 'total' suffix from the metric name
     assert "githubactions_workflow_run" in metric_names
     assert "githubactions_workflow_run_duration_seconds" in metric_names
+
+def test_workflow_job_metrics_recorded(client):
+    with open('tests/valid_workflow_job_payload.json', 'r') as f:
+        test_payload = json.load(f)
+    response = client.post('/webhook',
+                           json=test_payload,
+                           content_type='application/json',
+                           headers={'X-GitHub-Event': 'workflow_job'})
+
+    assert response.status_code == 200
+
+    response = client.get('/metrics')
+
+    metric_families = text_string_to_metric_families(response.get_data(as_text=True))
+    metric_names = []
+    for metric in metric_families:
+        metric_names.append(metric.name)
+
+    # Note prometheus_client strips the 'total' suffix from the metric name
+    assert "githubactions_workflow_job" in metric_names
 
 def test_invalid_workflow_run_payload(client):
     with open('tests/invalid_workflow_run_payload.json', 'r') as f:
