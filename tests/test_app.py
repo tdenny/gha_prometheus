@@ -16,7 +16,7 @@ def client():
     return app.test_client()
 
 def test_no_event_header(client):
-    with open('tests/sample_payload.json', 'r') as f:
+    with open('tests/valid_workflow_run_payload.json', 'r') as f:
         test_payload = json.load(f)
     response = client.post('/webhook',
                            json=test_payload,
@@ -42,7 +42,7 @@ def test_payload_not_json(client):
     assert b"Unsupported Media Type" in response_data
 
 def test_extract_data_from_payload():
-    with open('tests/sample_payload.json', 'r') as f:
+    with open('tests/valid_workflow_run_payload.json', 'r') as f:
         test_payload = json.load(f)
     extracted_data = extract_data_from_payload(test_payload)
 
@@ -53,13 +53,13 @@ def test_extract_data_from_payload():
     assert extracted_data["updated_at"] == "2025-07-21T14:58:19Z"
 
 def test_validate_workflow_run_payload_success():
-    with open('tests/sample_payload.json', 'r') as f:
+    with open('tests/valid_workflow_run_payload.json', 'r') as f:
         test_payload = json.load(f)
 
     assert validate_workflow_run_payload(test_payload) is None
 
 def test_validate_workflow_run_payload_failure():
-    with open('tests/invalid_payload.json', 'r') as f:
+    with open('tests/invalid_workflow_run_payload.json', 'r') as f:
         test_payload = json.load(f)
 
     with pytest.raises(BadRequestMissingField):
@@ -79,13 +79,13 @@ def test_validate_workflow_job_payload_failure():
         validate_workflow_job_payload(test_payload)
 
 def test_calculate_duration():
-    with open('tests/sample_payload.json', 'r') as f:
+    with open('tests/valid_workflow_run_payload.json', 'r') as f:
         test_payload = json.load(f)
 
     assert calculate_workflow_duration(test_payload) == 19
 
 def test_metrics_recorded(client):
-    with open('tests/sample_payload.json', 'r') as f:
+    with open('tests/valid_workflow_run_payload.json', 'r') as f:
         test_payload = json.load(f)
     response = client.post('/webhook',
                            json=test_payload,
@@ -106,7 +106,7 @@ def test_metrics_recorded(client):
     assert "githubactions_workflow_run_duration_seconds" in metric_names
 
 def test_invalid_workflow_run_payload(client):
-    with open('tests/invalid_payload.json', 'r') as f:
+    with open('tests/invalid_workflow_run_payload.json', 'r') as f:
         invalid_payload = json.load(f)
     response = client.post('/webhook',
                            json=invalid_payload,
