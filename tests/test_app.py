@@ -105,7 +105,7 @@ def test_metrics_recorded(client):
     assert "githubactions_workflow_run" in metric_names
     assert "githubactions_workflow_run_duration_seconds" in metric_names
 
-def test_invalid_payload(client):
+def test_invalid_workflow_run_payload(client):
     with open('tests/invalid_payload.json', 'r') as f:
         invalid_payload = json.load(f)
     response = client.post('/webhook',
@@ -117,3 +117,16 @@ def test_invalid_payload(client):
     assert response.json["message"] == "Invalid request payload"
     assert response.json["errors"] == [{"field": "workflow_run",
                                         "message": "Field 'workflow_run' is required."}]
+
+def test_invalid_workflow_job_payload(client):
+    with open('tests/invalid_workflow_job_payload.json', 'r') as f:
+        invalid_payload = json.load(f)
+    response = client.post('/webhook',
+                           json=invalid_payload,
+                           content_type='application/json',
+                           headers={'X-GitHub-Event': 'workflow_job'})
+
+    assert response.status_code == 400
+    assert response.json["message"] == "Invalid request payload"
+    assert response.json["errors"] == [{"field": "workflow_job",
+                                        "message": "Field 'workflow_job' is required."}]

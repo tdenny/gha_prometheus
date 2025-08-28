@@ -69,8 +69,14 @@ def receive_webhook():
             elif payload['workflow_run']['conclusion'] == 'failure':
                 workflow_failures.labels(workflow_id).inc()
             workflow_duration.labels(workflow_id).set(duration)
+    elif event == "workflow_job":
+        validate_workflow_job_payload(payload)
 
-        return jsonify({"status": "success"}), 200
+        if payload['action'] == 'completed':
+            workflow_job_id = payload['workflow_job']['id']
+            workflow_run_id = payload['workflow_job']['run_id']
+
+    return jsonify({"status": "success"}), 200
 
 @app.route('/metrics', methods=['GET'])
 def metrics():
