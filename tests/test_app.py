@@ -124,6 +124,7 @@ def test_workflow_job_metrics_recorded(client):
 
     # Note prometheus_client strips the 'total' suffix from the metric name
     assert "githubactions_workflow_job" in metric_names
+    assert "githubactions_workflow_job_success" in metric_names
 
 def test_invalid_workflow_run_payload(client):
     with open('tests/invalid_workflow_run_payload.json', 'r') as f:

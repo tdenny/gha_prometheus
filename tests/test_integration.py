@@ -143,3 +143,29 @@ def test_prometheus_scrapes_metrics():
     assert {} == DeepDiff(prometheus_response.json(),
                           expected_query_result,
                           exclude_paths=["root['data']['result'][0]['value'][0]"])
+
+    prom_query = {"query": 'githubactions_workflow_job_success_total{workflow_run_id="30041"}'}
+    expected_query_result = {
+                              "status": "success",
+                              "data": {
+                                "resultType": "vector",
+                                "result": [
+                                  {
+                                    "metric": {
+                                      "__name__": "githubactions_workflow_job_success_total",
+                                      "instance": "gha_prometheus:80",
+                                      "job": "gha_prometheus",
+                                      "workflow_job_id": "48831014846",
+                                      "workflow_run_id": "30041"
+                                    },
+                                    "value": [
+                                      1753968692.312,
+                                      "1"
+                                    ]
+                                  }
+                                ]
+                              }
+                            }
+    assert {} == DeepDiff(prometheus_response.json(),
+                          expected_query_result,
+                          exclude_paths=["root['data']['result'][0]['value'][0]"])
