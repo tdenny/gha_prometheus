@@ -4,21 +4,21 @@ from deepdiff import DeepDiff
 from time import sleep
 
 def test_prometheus_scrapes_metrics():
-    with open('tests/valid_workflow_run_payload.json', 'r') as f:
+    with open('tests/payloads/valid_workflow_run.json', 'r') as f:
         test_payload = json.load(f)
     app_response = requests.post('http://localhost:8080/webhook',
                                  headers={'X-GitHub-Event': 'workflow_run'},
                                  json=test_payload)
     app_response.raise_for_status()
 
-    with open('tests/sample_failed_payload.json', 'r') as f:
+    with open('tests/payloads/valid_workflow_run_failed.json', 'r') as f:
         test_payload = json.load(f)
     app_response = requests.post('http://localhost:8080/webhook',
                                  headers={'X-GitHub-Event': 'workflow_run'},
                                  json=test_payload)
     app_response.raise_for_status()
 
-    with open('tests/valid_workflow_job_payload.json', 'r') as f:
+    with open('tests/payloads/valid_workflow_job.json', 'r') as f:
         test_payload = json.load(f)
     app_response = requests.post('http://localhost:8080/webhook',
                                  headers={'X-GitHub-Event': 'workflow_job'},
