@@ -54,7 +54,6 @@ def receive_webhook():
     payload = request.get_json()
     if event == "workflow_run":
         validate_workflow_run_payload(payload)
-        extracted_data = extract_data_from_payload(payload)
 
         if payload['action'] == 'completed':
             workflow_id = payload['workflow']['id']
@@ -123,20 +122,6 @@ def calculate_workflow_duration(payload):
     start_time = datetime.strptime(payload['workflow_run']['run_started_at'], time_format)
     end_time = datetime.strptime(payload['workflow_run']['updated_at'], time_format)
     return (end_time - start_time).seconds
-
-def extract_data_from_payload(payload):
-    workflow = payload.get("workflow")
-    workflow_run = payload.get("workflow_run")
-
-    rv = {
-        "workflow_id": workflow.get("id"),
-        "workflow_run_id": workflow_run.get("id"),
-        "conclusion": workflow_run.get("conclusion"),
-        "run_started_at": workflow_run.get("run_started_at"),
-        "updated_at": workflow_run.get("updated_at")
-    }
-
-    return rv
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
