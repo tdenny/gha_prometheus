@@ -1,0 +1,9 @@
+{
+  "action": "completed",
+  "workflow_job": {
+    "id": 48831014846,
+    "conclusion": "failure",
+    "run_id": 30041,
+    "workflow_name": "Tests"
+  }
+}
