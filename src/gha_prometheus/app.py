@@ -52,7 +52,7 @@ def receive_webhook():
                         workflow_run_id=workflow_run_id,
                         workflow_job_id=workflow_job_id
                         ).inc()
-            elif payload['workflow_run']['conclusion'] == 'failure':
+            elif payload['workflow_job']['conclusion'] == 'failure':
                 job_failures.labels(
                         workflow_run_id=workflow_run_id,
                         workflow_job_id=workflow_job_id
