@@ -3,34 +3,23 @@ import requests
 from deepdiff import DeepDiff
 from time import sleep
 
+def send_test_payload(payload_file, payload_event):
+    webhook_endpoint = 'http://localhost:8080/webhook'
+
+    with open(payload_file, 'r') as f:
+        test_payload = json.load(f)
+
+    app_response = requests.post(webhook_endpoint,
+                                 headers={'X-GitHub-Event': payload_event},
+                                 json=test_payload)
+
+    app_response.raise_for_status()
+
 def test_prometheus_scrapes_metrics():
-    with open('tests/payloads/valid_workflow_run.json', 'r') as f:
-        test_payload = json.load(f)
-    app_response = requests.post('http://localhost:8080/webhook',
-                                 headers={'X-GitHub-Event': 'workflow_run'},
-                                 json=test_payload)
-    app_response.raise_for_status()
-
-    with open('tests/payloads/valid_workflow_run_failed.json', 'r') as f:
-        test_payload = json.load(f)
-    app_response = requests.post('http://localhost:8080/webhook',
-                                 headers={'X-GitHub-Event': 'workflow_run'},
-                                 json=test_payload)
-    app_response.raise_for_status()
-
-    with open('tests/payloads/valid_workflow_job.json', 'r') as f:
-        test_payload = json.load(f)
-    app_response = requests.post('http://localhost:8080/webhook',
-                                 headers={'X-GitHub-Event': 'workflow_job'},
-                                 json=test_payload)
-    app_response.raise_for_status()
-
-    with open('tests/payloads/valid_workflow_job_failed.json', 'r') as f:
-        test_payload = json.load(f)
-    app_response = requests.post('http://localhost:8080/webhook',
-                                headers={'X-GitHub-Event': 'workflow_job'},
-                                json=test_payload)
-    app_response.raise_for_status()
+    send_test_payload('tests/payloads/valid_workflow_run.json', 'workflow_run')
+    send_test_payload('tests/payloads/valid_workflow_run_failed.json', 'workflow_run')
+    send_test_payload('tests/payloads/valid_workflow_job.json', 'workflow_job')
+    send_test_payload('tests/payloads/valid_workflow_job_failed.json', 'workflow_job')
 
     sleep(5)
 
