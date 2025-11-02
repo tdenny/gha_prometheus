@@ -1,7 +1,11 @@
 import os
 from datetime import datetime
 from flask import abort, Flask, request, jsonify, Response
-from prometheus_client import generate_latest
+from prometheus_client import (generate_latest,
+                               REGISTRY,
+                               GC_COLLECTOR,
+                               PLATFORM_COLLECTOR,
+                               PROCESS_COLLECTOR)
 
 from gha_prometheus.exceptions import BadRequestMissingField
 from gha_prometheus.metrics import (workflow_runs,
@@ -11,6 +15,11 @@ from gha_prometheus.metrics import (workflow_runs,
                                    job_runs,
                                    job_successes,
                                    job_failures)
+
+# Disable metric collection for garbage collection, platform, and process
+REGISTRY.unregister(GC_COLLECTOR)
+REGISTRY.unregister(PLATFORM_COLLECTOR)
+REGISTRY.unregister(PROCESS_COLLECTOR)
 
 app = Flask(__name__)
 
