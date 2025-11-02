@@ -15,6 +15,13 @@ def send_test_payload(payload_file, payload_event):
 
     app_response.raise_for_status()
 
+def query_prometheus(query):
+    response = requests.get('http://localhost:9090/api/v1/query', params=query)
+
+    response.raise_for_status()
+
+    return response.json()
+
 def test_prometheus_scrapes_metrics():
     send_test_payload('tests/payloads/valid_workflow_run.json', 'workflow_run')
     send_test_payload('tests/payloads/valid_workflow_run_failed.json', 'workflow_run')
@@ -23,7 +30,6 @@ def test_prometheus_scrapes_metrics():
 
     sleep(5)
 
-    prom_query = {"query": 'githubactions_workflow_run_total{workflow_id="1"}'}
     expected_query_result = {
                               "status": "success",
                               "data": {
@@ -45,14 +51,13 @@ def test_prometheus_scrapes_metrics():
                               }
                             }
 
-    prometheus_response = requests.get('http://localhost:9090/api/v1/query',
-                                       params=prom_query)
+    prom_query = {"query": 'githubactions_workflow_run_total{workflow_id="1"}'}
+    prometheus_response = query_prometheus(prom_query)
 
-    assert {} == DeepDiff(prometheus_response.json(),
+    assert {} == DeepDiff(prometheus_response,
                           expected_query_result,
                           exclude_paths=["root['data']['result'][0]['value'][0]"])
 
-    prom_query = {"query": 'githubactions_workflow_run_success_total{workflow_id="1"}'}
     expected_query_result = {
                               "status": "success",
                               "data": {
@@ -74,14 +79,13 @@ def test_prometheus_scrapes_metrics():
                               }
                             }
 
-    prometheus_response = requests.get('http://localhost:9090/api/v1/query',
-                                       params=prom_query)
+    prom_query = {"query": 'githubactions_workflow_run_success_total{workflow_id="1"}'}
+    prometheus_response = query_prometheus(prom_query)
 
-    assert {} == DeepDiff(prometheus_response.json(),
+    assert {} == DeepDiff(prometheus_response,
                           expected_query_result,
                           exclude_paths=["root['data']['result'][0]['value'][0]"])
 
-    prom_query = {"query": 'githubactions_workflow_run_failure_total{workflow_id="1"}'}
     expected_query_result = {
                               "status": "success",
                               "data": {
@@ -103,14 +107,13 @@ def test_prometheus_scrapes_metrics():
                               }
                             }
 
-    prometheus_response = requests.get('http://localhost:9090/api/v1/query',
-                                       params=prom_query)
+    prom_query = {"query": 'githubactions_workflow_run_failure_total{workflow_id="1"}'}
+    prometheus_response = query_prometheus(prom_query)
 
-    assert {} == DeepDiff(prometheus_response.json(),
+    assert {} == DeepDiff(prometheus_response,
                           expected_query_result,
                           exclude_paths=["root['data']['result'][0]['value'][0]"])
 
-    prom_query = {"query": 'githubactions_workflow_job_total{workflow_run_id="30041"}'}
     expected_query_result = {
                               "status": "success",
                               "data": {
@@ -133,14 +136,13 @@ def test_prometheus_scrapes_metrics():
                               }
                             }
 
-    prometheus_response = requests.get('http://localhost:9090/api/v1/query',
-                                       params=prom_query)
+    prom_query = {"query": 'githubactions_workflow_job_total{workflow_run_id="30041"}'}
+    prometheus_response = query_prometheus(prom_query)
 
-    assert {} == DeepDiff(prometheus_response.json(),
+    assert {} == DeepDiff(prometheus_response,
                           expected_query_result,
                           exclude_paths=["root['data']['result'][0]['value'][0]"])
 
-    prom_query = {"query": 'githubactions_workflow_job_success_total{workflow_run_id="30041"}'}
     expected_query_result = {
                               "status": "success",
                               "data": {
@@ -163,13 +165,13 @@ def test_prometheus_scrapes_metrics():
                               }
                             }
 
-    prometheus_response = requests.get('http://localhost:9090/api/v1/query',
-                                       params=prom_query)
-    assert {} == DeepDiff(prometheus_response.json(),
+    prom_query = {"query": 'githubactions_workflow_job_success_total{workflow_run_id="30041"}'}
+    prometheus_response = query_prometheus(prom_query)
+
+    assert {} == DeepDiff(prometheus_response,
                           expected_query_result,
                           exclude_paths=["root['data']['result'][0]['value'][0]"])
 
-    prom_query = {"query": 'githubactions_workflow_job_failure_total{workflow_run_id="30041"}'}
     expected_query_result = {
                               "status": "success",
                               "data": {
@@ -192,8 +194,9 @@ def test_prometheus_scrapes_metrics():
                               }
                             }
 
-    prometheus_response = requests.get('http://localhost:9090/api/v1/query',
-                                       params=prom_query)
-    assert {} == DeepDiff(prometheus_response.json(),
+    prom_query = {"query": 'githubactions_workflow_job_failure_total{workflow_run_id="30041"}'}
+    prometheus_response = query_prometheus(prom_query)
+
+    assert {} == DeepDiff(prometheus_response,
                           expected_query_result,
                           exclude_paths=["root['data']['result'][0]['value'][0]"])
