@@ -40,11 +40,11 @@ def receive_webhook():
         if payload['action'] == 'completed':
             workflow_id = payload['workflow']['id']
             duration = calculate_workflow_duration(payload)
-            workflow_runs.labels(workflow_id).inc()
+            increment_workflow_run(workflow_id)
             if payload['workflow_run']['conclusion'] == 'success':
-                workflow_successes.labels(workflow_id).inc()
+                increment_workflow_success(workflow_id)
             elif payload['workflow_run']['conclusion'] == 'failure':
-                workflow_failures.labels(workflow_id).inc()
+                increment_workflow_failure(workflow_id)
             workflow_duration.labels(workflow_id).set(duration)
     elif event == "workflow_job":
         validate_workflow_job_payload(payload)
@@ -52,22 +52,41 @@ def receive_webhook():
         if payload['action'] == 'completed':
             workflow_job_id = payload['workflow_job']['id']
             workflow_run_id = payload['workflow_job']['run_id']
-            job_runs.labels(
-                    workflow_run_id=workflow_run_id,
-                    workflow_job_id=workflow_job_id
-                    ).inc()
+            increment_job_run(workflow_run_id, workflow_job_id)
             if payload['workflow_job']['conclusion'] == 'success':
-                job_successes.labels(
-                        workflow_run_id=workflow_run_id,
-                        workflow_job_id=workflow_job_id
-                        ).inc()
+                increment_job_success(workflow_run_id, workflow_job_id)
             elif payload['workflow_job']['conclusion'] == 'failure':
-                job_failures.labels(
-                        workflow_run_id=workflow_run_id,
-                        workflow_job_id=workflow_job_id
-                        ).inc()
+                increment_job_failure(workflow_run_id, workflow_job_id)
 
     return jsonify({"status": "success"}), 200
+
+def increment_workflow_run(workflow_id):
+    workflow_runs.labels(workflow_id).inc()
+
+def increment_workflow_success(workflow_id):
+    workflow_successes.labels(workflow_id).inc()
+
+def increment_workflow_failure(workflow_id):
+    workflow_failures.labels(workflow_id).inc()
+
+def increment_job_run(run_id, job_id):
+    job_runs.labels(
+        workflow_run_id=run_id,
+        workflow_job_id=job_id
+    ).inc()
+
+def increment_job_success(run_id, job_id):
+    job_successes.labels(
+        workflow_run_id=run_id,
+        workflow_job_id=job_id
+    ).inc()
+
+def increment_job_failure(run_id, job_id):
+    job_failures.labels(
+        workflow_run_id=run_id,
+        workflow_job_id=job_id
+    ).inc()
+
 
 @app.route('/metrics', methods=['GET'])
 def metrics():
