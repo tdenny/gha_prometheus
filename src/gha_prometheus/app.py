@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from flask import abort, Flask, request, jsonify, Response
 from prometheus_client import (generate_latest,
                                REGISTRY,
@@ -7,6 +6,7 @@ from prometheus_client import (generate_latest,
                                PLATFORM_COLLECTOR,
                                PROCESS_COLLECTOR)
 
+from gha_prometheus.workflow_run_consumer import consume_workflow_run_event
 from gha_prometheus.exceptions import BadRequestMissingField
 from gha_prometheus.metrics import (workflow_runs,
                                    workflow_failures,
@@ -41,27 +41,6 @@ def receive_webhook():
 
     return jsonify({"status": "success"}), 200
 
-def consume_workflow_run_event(payload):
-    validate_workflow_run_payload(payload)
-
-    if payload['action'] == 'completed':
-        workflow_id = payload['workflow']['id']
-        duration = calculate_workflow_duration(payload)
-        increment_workflow_run(workflow_id)
-        if payload['workflow_run']['conclusion'] == 'success':
-            increment_workflow_success(workflow_id)
-        elif payload['workflow_run']['conclusion'] == 'failure':
-            increment_workflow_failure(workflow_id)
-        workflow_duration.labels(workflow_id).set(duration)
-
-def increment_workflow_run(workflow_id):
-    workflow_runs.labels(workflow_id).inc()
-
-def increment_workflow_success(workflow_id):
-    workflow_successes.labels(workflow_id).inc()
-
-def increment_workflow_failure(workflow_id):
-    workflow_failures.labels(workflow_id).inc()
 
 def consume_workflow_job_event(payload):
     validate_workflow_job_payload(payload)
@@ -99,19 +78,6 @@ def increment_job_failure(run_id, job_id):
 def metrics():
     return Response(generate_latest(), mimetype='text/plain; version=0.0.4; charset=utf-8')
 
-def validate_workflow_run_payload(payload):
-    """
-    Validate that the webhook payload contains all required fields
-    """
-    fields = payload.keys()
-    missing_fields = []
-    if "workflow" not in fields:
-        missing_fields.append("workflow")
-    if "workflow_run" not in fields:
-        missing_fields.append("workflow_run")
-
-    if missing_fields:
-        raise BadRequestMissingField(missing_fields)
 
 def validate_workflow_job_payload(payload):
     """
@@ -124,12 +90,6 @@ def validate_workflow_job_payload(payload):
 
     if missing_fields:
         raise BadRequestMissingField(missing_fields)
-
-def calculate_workflow_duration(payload):
-    time_format = '%Y-%m-%dT%H:%M:%SZ'
-    start_time = datetime.strptime(payload['workflow_run']['run_started_at'], time_format)
-    end_time = datetime.strptime(payload['workflow_run']['updated_at'], time_format)
-    return (end_time - start_time).seconds
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
