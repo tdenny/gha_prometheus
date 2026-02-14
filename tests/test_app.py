@@ -1,10 +1,10 @@
 import pytest
 import json
 from gha_prometheus.app import app
+from gha_prometheus.workflow_job_consumer import validate_workflow_job_payload
 from gha_prometheus.workflow_run_consumer import calculate_workflow_duration
 from gha_prometheus.workflow_run_consumer import validate_workflow_run_payload
-from gha_prometheus.app import validate_workflow_job_payload
-from gha_prometheus.app import BadRequestMissingField
+from gha_prometheus.exceptions import BadRequestMissingField
 from prometheus_client.parser import text_string_to_metric_families
 
 @pytest.fixture()
