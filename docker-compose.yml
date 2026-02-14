@@ -14,7 +14,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./tests/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./tests/prometheus.yml:/etc/prometheus/prometheus.yml:Z
 
 networks:
   test-network:
