@@ -36,3 +36,21 @@ Install dependencies:
    pip install -r requirements.txt
    pip install -r requirements-dev.txt
    pip install -e .
+
+Running Grafana
+---------------
+
+Execute docker or podman composer to bring up the test stack defined in
+``docker-composer.yml``
+
+.. code-block::
+
+   podman compose -f docker-compose.yml up
+
+Run a grafana image in the same container network.
+
+.. code-block::
+
+   podman run --network gha_prometheus_test-network -p 3000:3000 --name grafana grafana/grafana-enterprise
+
+In the Grafana UI, create a datasource to ``http://prometheus:9090``.
