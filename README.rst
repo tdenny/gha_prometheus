@@ -25,3 +25,14 @@ the webhooks with the `GitHub CLI`_.
 Now, `workflow_run` webhook events will be forwarded to your locally running
 `gha_prometheus`. You can inspect the metrics page at
 http://localhost:8080/metrics.
+
+Contributing
+------------
+
+Install dependencies:
+
+.. code-block::
+
+   pip install -r requirements.txt
+   pip install -r requirements-dev.txt
+   pip install -e .
