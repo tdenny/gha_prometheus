@@ -35,30 +35,24 @@ def receive_webhook():
 
     payload = request.get_json()
     if event == "workflow_run":
-        validate_workflow_run_payload(payload)
-
-        if payload['action'] == 'completed':
-            workflow_id = payload['workflow']['id']
-            duration = calculate_workflow_duration(payload)
-            increment_workflow_run(workflow_id)
-            if payload['workflow_run']['conclusion'] == 'success':
-                increment_workflow_success(workflow_id)
-            elif payload['workflow_run']['conclusion'] == 'failure':
-                increment_workflow_failure(workflow_id)
-            workflow_duration.labels(workflow_id).set(duration)
+        consume_workflow_run_event(payload)
     elif event == "workflow_job":
-        validate_workflow_job_payload(payload)
-
-        if payload['action'] == 'completed':
-            workflow_job_id = payload['workflow_job']['id']
-            workflow_run_id = payload['workflow_job']['run_id']
-            increment_job_run(workflow_run_id, workflow_job_id)
-            if payload['workflow_job']['conclusion'] == 'success':
-                increment_job_success(workflow_run_id, workflow_job_id)
-            elif payload['workflow_job']['conclusion'] == 'failure':
-                increment_job_failure(workflow_run_id, workflow_job_id)
+        consume_workflow_job_event(payload)
 
     return jsonify({"status": "success"}), 200
+
+def consume_workflow_run_event(payload):
+    validate_workflow_run_payload(payload)
+
+    if payload['action'] == 'completed':
+        workflow_id = payload['workflow']['id']
+        duration = calculate_workflow_duration(payload)
+        increment_workflow_run(workflow_id)
+        if payload['workflow_run']['conclusion'] == 'success':
+            increment_workflow_success(workflow_id)
+        elif payload['workflow_run']['conclusion'] == 'failure':
+            increment_workflow_failure(workflow_id)
+        workflow_duration.labels(workflow_id).set(duration)
 
 def increment_workflow_run(workflow_id):
     workflow_runs.labels(workflow_id).inc()
@@ -68,6 +62,19 @@ def increment_workflow_success(workflow_id):
 
 def increment_workflow_failure(workflow_id):
     workflow_failures.labels(workflow_id).inc()
+
+def consume_workflow_job_event(payload):
+    validate_workflow_job_payload(payload)
+
+    if payload['action'] == 'completed':
+        workflow_job_id = payload['workflow_job']['id']
+        workflow_run_id = payload['workflow_job']['run_id']
+        increment_job_run(workflow_run_id, workflow_job_id)
+        if payload['workflow_job']['conclusion'] == 'success':
+            increment_job_success(workflow_run_id, workflow_job_id)
+        elif payload['workflow_job']['conclusion'] == 'failure':
+            increment_job_failure(workflow_run_id, workflow_job_id)
+
 
 def increment_job_run(run_id, job_id):
     job_runs.labels(
